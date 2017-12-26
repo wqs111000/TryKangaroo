@@ -78,8 +78,9 @@ namespace TryKangaroo
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             //pManager.AddTextParameter("Reverse", "R", "Reversed string", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Mesh", "A", "Mesh", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Mesh", "M", "Mesh", GH_ParamAccess.item);
             pManager.AddPointParameter("Point", "P", "Point", GH_ParamAccess.list);
+            pManager.AddIntegerParameter("iterations", "I", "迭代次数", GH_ParamAccess.list);
 
         }
 
@@ -95,7 +96,7 @@ namespace TryKangaroo
         Mesh TargetMesh = new Mesh();
         bool initialized;
         int counter = 0;
-        double threshold = 1e-6;
+        double threshold = 1e-3;
         /// <summary>
         /// This is the method that actually does the work.
         /// </summary>
@@ -134,19 +135,25 @@ namespace TryKangaroo
                 //数组转列表
                 List<Point3d> Pts = new List<Point3d>(M.Vertices.ToPoint3dArray());
                 List<Point3d> NakedPts = new List<Point3d>();
+                List<int> Is = new List<int>();
+                List<int> NakedIs = new List<int>();
                 bool[] Naked = M.GetNakedEdgePointStatus();
 
                 for (int i = 0; i < M.Vertices.Count; i++)
                 {
-                    //PS.AddParticle(Pts[i], 1); //add a particle for every mesh vertex
+                    PS.AddParticle(Pts[i], 1); //add a particle for every mesh vertex
+                    Is.Add(i);
                     if (Naked[i])
                     //{ Goals.Add(new KangarooSolver.Goals.Anchor(i, Pts[i], 10000)); }// fix the boundaries strongly in place
                     {
                         NakedPts.Add(Pts[i]);
+                        NakedIs.Add(i);
                     }
                 }
-                Goals.Add(new KangarooSolver.Goals.OnCurve(NakedPts, BoundaryCurves[0], PullStrengthC));
-                Goals.Add(new KangarooSolver.Goals.OnMesh(Pts, TargetMesh, 1));
+                //Goals.Add(new KangarooSolver.Goals.OnCurve(NakedPts, BoundaryCurves[0], PullStrengthC));
+                Goals.Add(new KangarooSolver.Goals.OnCurve(NakedIs, BoundaryCurves[0], PullStrengthC));
+                //Goals.Add(new KangarooSolver.Goals.OnMesh(Pts, TargetMesh, 1));
+                Goals.Add(new KangarooSolver.Goals.OnMesh(Is, TargetMesh, PullStrengthM));
                 double sum_length = 0;
                 for (int i = 0; i < M.TopologyEdges.Count; i++)
                 {
@@ -162,96 +169,87 @@ namespace TryKangaroo
                     int Start = M.TopologyVertices.MeshVertexIndices(Ends.I)[0];
                     int End = M.TopologyVertices.MeshVertexIndices(Ends.J)[0];
                     //for each edge, a spring with rest length average_length, and strength 1
-                    Goals.Add(new KangarooSolver.Goals.Spring(Pts[Start], Pts[End], average_length, 1));
+                    //Goals.Add(new KangarooSolver.Goals.Spring(Pts[Start], Pts[End], average_length, 1));
+                    Goals.Add(new KangarooSolver.Goals.Spring(Start, End, average_length, SpringStrength));
                 }
-                for (int i = 0; i < FixedPoint.Count; i++)
+                for (int j = 0; j < FixedPoint.Count; j++)
                 {
-                    Goals.Add(new KangarooSolver.Goals.Anchor( FixedPoint[i], 10000));
+
+                    int index = PS.FindParticleIndex(FixedPoint[j], threshold, true);
+                    Goals.Add(new KangarooSolver.Goals.Anchor(index, FixedPoint[j], 10000));
+
                 }// fix the boundaries strongly in place
                  // foreach (IGoal G in Goals)
                  //  {
                  //     PS.AssignPIndex(G, 0.01);
                  // }
-                foreach (IGoal G in Goals) //Assign indexes to the particles in each Goal:
-                {
-                    PS.AssignPIndex(G, 0.0001); // the second argument is the tolerance distance below which points combine into a single particle
-                    GoalList.Add(G);
-                }
+                 //GH_ObjectWrapper ow=new GH_ObjectWrapper(M);
+                 //var gl = new KangarooSolver.Goals.Locator(ow);
+                 // Goals.Add(gl);
+                 //foreach (IGoal G in Goals) //Assign indexes to the particles in each Goal:
+                 //{
+                 //    PS.AssignPIndex(G, 0.0001); // the second argument is the tolerance distance below which points combine into a single particle
+                 //    GoalList.Add(G);
+                 //}
                 #endregion
             }
-            /*
             else
             {
-                int count = Springs.Count;
-
-                for (int i = 0; i < count; i++)
+                /*
+                else
                 {
-                    Spring S = Springs[i] as Spring;
-                    Point3d Start = PS.GetPosition(S.PIndex[0]);
-                    Point3d End = PS.GetPosition(S.PIndex[1]);
+                    int count = Springs.Count;
 
-                    double LineLength = Start.DistanceTo(End);
-                    if (LineLength > splitLength)
+                    for (int i = 0; i < count; i++)
                     {
-                        Point3d MidPt = 0.5 * (Start + End);
-                        PS.AddParticle(MidPt, 1);
-                        int newParticleIndex = PS.ParticleCount() - 1;
-                        int endIndex = S.PIndex[1];
-                        //set the end of the original spring to be the newly created midpoint
-                        //and make a new spring from the midpoint to the original endpoint
-                        S.PIndex[1] = newParticleIndex;
-                        S.RestLength = 0.5 * LineLength;
-                        Spring otherHalf = new Spring(newParticleIndex, endIndex, 0.5 * LineLength, 1);
-                        Springs[i] = S;
-                        Springs.Add(otherHalf);
-                    }
-                    else
-                    {
-                        S.RestLength += increment;
-                        Springs[i] = S;
-                    }
-                }
-                */
+                        Spring S = Springs[i] as Spring;
+                        Point3d Start = PS.GetPosition(S.PIndex[0]);
+                        Point3d End = PS.GetPosition(S.PIndex[1]);
 
-              
-            //Step forward, using these goals, with multi-threading on, and stopping if the threshold is reached
-            if (counter == 0 || (PS.GetvSum() > threshold && counter < 100))
+                        double LineLength = Start.DistanceTo(End);
+                        if (LineLength > splitLength)
+                        {
+                            Point3d MidPt = 0.5 * (Start + End);
+                            PS.AddParticle(MidPt, 1);
+                            int newParticleIndex = PS.ParticleCount() - 1;
+                            int endIndex = S.PIndex[1];
+                            //set the end of the original spring to be the newly created midpoint
+                            //and make a new spring from the midpoint to the original endpoint
+                            S.PIndex[1] = newParticleIndex;
+                            S.RestLength = 0.5 * LineLength;
+                            Spring otherHalf = new Spring(newParticleIndex, endIndex, 0.5 * LineLength, 1);
+                            Springs[i] = S;
+                            Springs.Add(otherHalf);
+                        }
+                        else
+                        {
+                            S.RestLength += increment;
+                            Springs[i] = S;
+                        }
+                    }
+                    */
+
+
+                //Step forward, using these goals, with multi-threading on, and stopping if the threshold is reached
+                if (counter == 0 || (PS.GetvSum() > threshold && counter < 100))
                 {
-                    PS.Step(GoalList, true, threshold);
+                    PS.Step(Goals, true, threshold);
+                    double sum = PS.GetvSum();
                     counter++;
                 }
-                //GetvSum returns the current kinetic energy
-                //always include a counter to prevent it getting stuck forever in case it cannot reach the given threshold
-
-                //replace the mesh vertices with the relaxed ones
+                //内部计算过程end   
+                //Output the mesh, and how many iterations it took to converge
+                //object Out = PS.GetOutput(GoalList);
+                //DA.SetData(0, Out);
                 M.Vertices.Clear();
                 M.Vertices.AddVertices(PS.GetPositions());
-                //Goals.Add(new KangarooSolver.Goals.Anchor(i, Pts[i], 10000)); 
-                /*
-                for (int i = 0; i < FV.Count; i++)
-                {
-                    for (int j = i+1; j < FV.Count; j++)
-                    {
-                       // Goals.Add(new KangarooSolver.Goals.Spring(i, j, restLength, 100)); //for each edge, a spring with rest length 0, and strength 1
-                        Goals.Add(new KangarooSolver.Goals.ClampLength(i, j, 10000, restLength, 100));
-                    }     
-                }
-                */
-                //Goals.Add(new KangarooSolver.Goals.OnMesh(FV, M, onMeshStrength));
-
-
-                //GetvSum returns the current kinetic energy
-                //always include a counter to prevent it getting stuck forever in case it cannot reach the given threshold
-
-                //replace the mesh vertices with the relaxed ones
-                //内部计算过程end   
-
-                //Output the mesh, and how many iterations it took to converge
-                DA.SetData(0, M);
-                List<Point3d> pout = new List<Point3d>();
-                pout = PS.GetPositions().ToList();
-                DA.SetDataList(1, pout); //输出第一个输出值
             }
+            DA.SetData(0, M);
+            List<Point3d> pout = new List<Point3d>();
+            pout = PS.GetPositions().ToList();
+            DA.SetDataList(1, pout); //输出第一个输出值
+            DA.SetData(2, counter);
+        }
 
         /// <summary>
         /// Provides an Icon for every component that will be visible in the User Interface.
