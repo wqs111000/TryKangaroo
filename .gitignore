@@ -45,3 +45,14 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
+*.suo
+*.gha
+TryKangaroo/bin/TryKangaroo.pdb
+*.dll
+*.suo
+TryKangaroo/bin/TryKangaroo.gha
+*.dll
+TryKangaroo/obj/Debug32/TryKangaroo.dll
+*.pdb
+TryKangaroo/obj/Debug32/TryKangaroo.dll
+*.pdb
