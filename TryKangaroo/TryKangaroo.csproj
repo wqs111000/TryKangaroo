@@ -72,7 +72,10 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="SphereCollide_wqs.cs" />
+    <Compile Include="BubbleMethodComponent.cs" />
     <Compile Include="TryKangarooComponent.cs" />
+    <Compile Include="BubbleMethodInfo.cs" />
     <Compile Include="TryKangarooInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

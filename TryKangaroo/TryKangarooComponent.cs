@@ -80,14 +80,14 @@ namespace TryKangaroo
             //pManager.AddTextParameter("Reverse", "R", "Reversed string", GH_ParamAccess.item);
             pManager.AddGenericParameter("Mesh", "M", "Mesh", GH_ParamAccess.item);
             pManager.AddPointParameter("Point", "P", "Point", GH_ParamAccess.list);
-            pManager.AddIntegerParameter("iterations", "I", "迭代次数", GH_ParamAccess.list);
+            pManager.AddIntegerParameter("iterations", "I", "迭代次数", GH_ParamAccess.item);
 
         }
 
         //private Mesh M = new Mesh();
         // List<Point3d> FV = new List<Point3d>();
         // List<Line> FL = new List<Line>();
-        //int onMeshStrength = 100;
+        //int onMeshStrength = 100    ;
         // int restLength = 0;
         KangarooSolver.PhysicalSystem PS = new KangarooSolver.PhysicalSystem();
         List<IGoal> Goals = new List<IGoal>();
@@ -135,6 +135,7 @@ namespace TryKangaroo
                 //数组转列表
                 List<Point3d> Pts = new List<Point3d>(M.Vertices.ToPoint3dArray());
                 List<Point3d> NakedPts = new List<Point3d>();
+                //var IndexList = Enumerable.Range(0, PS.ParticleCount()).ToList();
                 List<int> Is = new List<int>();
                 List<int> NakedIs = new List<int>();
                 bool[] Naked = M.GetNakedEdgePointStatus();
@@ -177,7 +178,6 @@ namespace TryKangaroo
 
                     int index = PS.FindParticleIndex(FixedPoint[j], threshold, true);
                     Goals.Add(new KangarooSolver.Goals.Anchor(index, FixedPoint[j], 10000));
-
                 }// fix the boundaries strongly in place
                  // foreach (IGoal G in Goals)
                  //  {
