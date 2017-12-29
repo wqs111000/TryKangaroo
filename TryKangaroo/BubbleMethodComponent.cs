@@ -64,18 +64,18 @@ namespace TryKangaroo
             //4
             pManager.AddNumberParameter("radius", "r", "basic radius", GH_ParamAccess.item);
             //5
-            pManager.AddNumberParameter("zankong", "r", "zanwu", GH_ParamAccess.item);
+            pManager.AddNumberParameter("zankong", "r", "zanwu", GH_ParamAccess.item); pManager[5].Optional = true;
             //6
-            pManager.AddNumberParameter("threshold", "T", "threshold", GH_ParamAccess.item, 1);
+            pManager.AddNumberParameter("threshold", "T", "threshold", GH_ParamAccess.item, 0.0001);
             pManager[6].Optional = true;
             //7
-            pManager.AddNumberParameter("subIteration", "si", "subIteration", GH_ParamAccess.item, 1);
+            pManager.AddNumberParameter("subIteration", "si", "subIteration", GH_ParamAccess.item, 10);
             pManager[7].Optional = true;
             //8
-            pManager.AddNumberParameter("maxIteration", "mi", "maxIteration", GH_ParamAccess.item, 1);
+            pManager.AddNumberParameter("maxIteration", "mi", "maxIteration", GH_ParamAccess.item, 100);
             pManager[8].Optional = true;
             //9
-            pManager.AddBooleanParameter("Reset", "R", "Reset", GH_ParamAccess.item);
+            pManager.AddBooleanParameter("Reset", "R", "Reset", GH_ParamAccess.item,true);
             //10
             pManager.AddGenericParameter("SpecialPoints", "SP", "Special Points", GH_ParamAccess.list);
             pManager[10].Optional = true;
@@ -95,7 +95,7 @@ namespace TryKangaroo
             pManager.AddNumberParameter("g_SpecialCurve", "gsc", "gsc", GH_ParamAccess.item, 1);
             pManager[15].Optional = true;
             //16
-            pManager.AddGenericParameter("ReferCurves", "RC", "Refer Curves", GH_ParamAccess.item);
+            pManager.AddGenericParameter("ReferCurves", "RC", "Refer Curves", GH_ParamAccess.list);
             pManager[16].Optional = true;
             //17
             pManager.AddGenericParameter("ReferCurvePoints", "RCP", "Refer Curve Points", GH_ParamAccess.list);
@@ -107,7 +107,7 @@ namespace TryKangaroo
             pManager.AddNumberParameter("g_ReferCurve", "grc", "g_ReferCurve", GH_ParamAccess.item, 1);
             pManager[19].Optional = true;
             //20
-            pManager.AddGenericParameter("ReferSurfaces", "RS", "Refer Surface", GH_ParamAccess.item);
+            pManager.AddGenericParameter("ReferSurfaces", "RS", "Refer Surface", GH_ParamAccess.list);
             pManager[20].Optional = true;
             //21
             pManager.AddGenericParameter("ReferSurfacePoints", "RSP", "Refer Surface Points", GH_ParamAccess.list);
@@ -132,7 +132,7 @@ namespace TryKangaroo
             //pManager.AddTextParameter("Reverse", "R", "Reversed string", GH_ParamAccess.item);
             pManager.AddPointParameter("Points", "P", "Point", GH_ParamAccess.list);
             pManager.AddIntegerParameter("iteration", "I", "迭代次数", GH_ParamAccess.item);
-            pManager.AddNumberParameter("adjustedRadios", "AR", "各气泡半径", GH_ParamAccess.list);
+            pManager.AddNumberParameter("adjustedRadius", "AR", "各气泡半径", GH_ParamAccess.list);
             pManager.AddPointParameter("bubbleCenters", "BC", "各气泡中心", GH_ParamAccess.list);
 
         }
@@ -209,8 +209,8 @@ namespace TryKangaroo
                 Goals.Add(new KangarooSolver.Goals.SphereCollide_wqs(Points, radius, CollideStrength,
                     SpecialPoints, k_SpecialPoint, g_SpecialPoint,
                     SpecialCurves, k_SpecialCurve, g_SpecialCurve,
-                    ReferCurves[0], ReferCurvePoints, k_ReferCurve, g_ReferCurve,
-                    ReferSurfaces[0], ReferSurfacePoints, k_ReferSurface, g_ReferSurface
+                    ReferCurves, ReferCurvePoints, k_ReferCurve, g_ReferCurve,
+                    ReferSurfaces, ReferSurfacePoints, k_ReferSurface, g_ReferSurface
                     ));
                  //public SphereCollide_wqs(List<Point3d> V, List<Point3d> SV, double radius, double k, double kSV0, double gSV0)
                 foreach (IGoal G in Goals) //Assign indexes to the particles in each Goal:
