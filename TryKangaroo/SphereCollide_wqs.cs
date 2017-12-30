@@ -11,6 +11,7 @@ namespace KangarooSolver.Goals
 {
     public class SphereCollide_wqs : GoalObject
     {
+        const double maximumDistance = 0.001, clb_basic=0.01;//点是否在曲线或者曲面上，曲率下限计算参考值
         public double Strength;
         //public double SqDiam;
         //public double Diam;
@@ -22,11 +23,11 @@ namespace KangarooSolver.Goals
         public double kSC = 1;
         public double gSC = 1;
         public List<Point3d> curveReferPoints;
-        public Curve referCurve;
+        public List<Curve> referCurves;
         public double kCR = 1;
         public List<double> kCRs;
         public double gCR = 1;
-        public Surface referSurface;
+        public List<Surface> referSurfaces;
         public List<Point3d> surfaceReferPoints;
         public double kSR = 1;
         public List<double> kSRs;
@@ -36,8 +37,8 @@ namespace KangarooSolver.Goals
         public SphereCollide_wqs(List<Point3d> V, double r, double w,
             List<Point3d> SV = null, double kP = 1, double gP = 1,
              List<Curve> SC = null, double kL = 1, double gL = 1,
-              List<Curve> rCurve = null, List<Point3d> CRP = null, double kCC = 1, double gCC = 1,
-              List<Surface> rSurface = null, List<Point3d> SRP = null, double kCS = 1, double gCS = 1)
+              List<Curve> rCurves = null, List<Point3d> CRP = null, double kCC = 1, double gCC = 1,
+              List<Surface> rSurfaces = null, List<Point3d> SRP = null, double kCS = 1, double gCS = 1)
         {
             int L = V.Count;
             PPos = V.ToArray();
@@ -61,45 +62,71 @@ namespace KangarooSolver.Goals
             kSC = kL;
             gSC = gL;
 
-            double clb = 0.01 / r0;//考虑的曲率下线
-            if (CRP != null && rCurve != null)
+            double clb = clb_basic / r0;//考虑的曲率下线
+            if (CRP != null && rCurves != null && rCurves.Count != 0)
             {
                 curveReferPoints = CRP;
-                referCurve = rCurve[0];
+                referCurves = rCurves;
                 kCR = kCC;
                 gCR = gCC;
                 kCRs = new List<double>();
                 foreach (var rp in curveReferPoints)
                 {
                     double t;
-                    if (referCurve.ClosestPoint(rp, out t))
+                    double mink = 1;
+                    foreach (var referCurve in referCurves)
                     {
-                        double cCurvature = referCurve.CurvatureAt(t).Length;
-                        double k = 1;
-                        if (cCurvature > clb)
+                        if (referCurve.ClosestPoint(rp, out t, maximumDistance))
                         {
-                             k = kCR + (1 - kCR) * Math.Abs(clb / cCurvature);
+                            double cCurvature = referCurve.CurvatureAt(t).Length;
+                            double k = 1;
+                            if (cCurvature > clb)
+                            {
+                                k = kCR + (1 - kCR) * Math.Abs(clb / cCurvature);
+                            }
+                            if (mink > k)
+                            {
+                                mink = k;
+                            }
                         }
-                        kCRs.Add(k);
                     }
+                        kCRs.Add(mink);
                 }
             }
-            if (surfaceReferPoints!=null && rSurface != null)
+            if (SRP != null && rSurfaces != null && rSurfaces.Count != 0)
             {
                 surfaceReferPoints = SRP;
-                referSurface = rSurface[0];
+                referSurfaces = rSurfaces;
                 kSR = kCS;
                 gSR = gCS;
                 kSRs = new List<double>();
                 foreach (var rp in surfaceReferPoints)
                 {
                     double u, v;
-                    if (referSurface.ClosestPoint(rp, out u, out v))
+                    double mink = 1;
+                    foreach (var referSurface in referSurfaces)
                     {
-                        double sCurvature = referSurface.CurvatureAt(u, v).Gaussian;
-                        double k = kSR + (1 - kSR) * Math.Abs(clb / sCurvature);
-                        kSRs.Add(k);
+                        if (referSurface.ClosestPoint(rp, out u, out v))
+                        {
+                            Point3d p0;
+                            Vector3d[] vec;
+                            referSurface.Evaluate(u, v, 1, out p0,out vec);
+                            if(p0.DistanceTo(rp) < maximumDistance)
+                            {
+                                double sCurvature = Math.Abs(referSurface.CurvatureAt(u, v).Gaussian);
+                                double k = 1;
+                                if (sCurvature > clb)
+                                {
+                                    k = kSR + (1 - kSR) * Math.Abs(clb / sCurvature);
+                                }
+                                if (mink > k)
+                                {
+                                    mink = k;
+                                }
+                            }
+                        }
                     }
+                        kSRs.Add(mink);
                 }
             }
 
@@ -107,7 +134,7 @@ namespace KangarooSolver.Goals
         private double RadiusFactor(Point3d p3d)
         {
             double hmin = 1;
-            if (specialPoints != null || specialPoints.Count != 0)
+            if (specialPoints != null && specialPoints.Count != 0)
             {
                 double hmin_sp = 1;
                 double minD = gSC * r0;
@@ -121,7 +148,7 @@ namespace KangarooSolver.Goals
                 hmin_sp = kSV + (1 - kSV) * minD / (gSV * r0);
                 hmin = Math.Min(hmin, hmin_sp);
             }
-            if (specialCurves != null || specialCurves.Count!=0)
+            if (specialCurves != null && specialCurves.Count != 0)
             {
                 double hmin_sc = 1;
                 double minD = gSC * r0;
@@ -142,7 +169,7 @@ namespace KangarooSolver.Goals
                 hmin_sc = kSC + (1 - kSC) * minD / (gSC * r0);
                 hmin = Math.Min(hmin, hmin_sc);
             }
-            if (curveReferPoints != null || curveReferPoints.Count != 0)
+            if (curveReferPoints != null && curveReferPoints.Count != 0)
             {
                 double hmin_cr = 1;
                 for (int j = 0; j < curveReferPoints.Count; j++)
@@ -177,6 +204,10 @@ namespace KangarooSolver.Goals
             // List<double> ars=new List<double>(); 
             for (int i = 0; i < (PIndex.Length); i++)
             {
+                if (i == 47)
+                {
+                    int aaa = 333;
+                }
                 double hmin = RadiusFactor(p[PIndex[i]].Position);
                 double ar = r0 * hmin;
                 ars[PIndex[i]] = ar;
