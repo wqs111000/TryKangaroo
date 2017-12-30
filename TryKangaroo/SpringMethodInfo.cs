@@ -35,7 +35,7 @@ namespace TryKangaroo
         {
             get
             {
-                return new Guid("0e336084-e010-4fd1-9b4f-f710cb079c06");
+                return new Guid("0e336084-e010-4fd1-9b4f-f710cb079c50");
             }
         }
 

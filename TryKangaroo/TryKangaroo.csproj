@@ -67,6 +67,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="SpringNet_wqs .cs" />
+    <Compile Include="SpringMethodComponent.cs" />
+    <Compile Include="SpringMethodInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
