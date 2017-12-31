@@ -56,15 +56,17 @@ namespace TryKangaroo
             //1
             pManager.AddGenericParameter("Points", "Pts", "Pts", GH_ParamAccess.list);
             //2
-            pManager.AddGenericParameter("Curves", "Crv", "Curve", GH_ParamAccess.list);
+            pManager.AddGenericParameter("MeshSpring", "MP", "Equal size kangaroo2 ", GH_ParamAccess.list);
+            // pManager.AddGenericParameter("Curves", "Crv", "Curve", GH_ParamAccess.list);
             //3
-            pManager.AddNumberParameter("PullStrengthM", "PM", "Strength of pull to target Mesh", GH_ParamAccess.item, 1);
-            pManager[3].Optional = true;
+            pManager.AddGenericParameter("CurvePull", "CP", "CurvePull kangaroo2", GH_ParamAccess.list);
+            //pManager[3].Optional = true;
             //4
             pManager.AddNumberParameter("SpringStiffness", "SS", "Spring Stiffness", GH_ParamAccess.item, 1);
             pManager[4].Optional = true;
             //5
-            pManager.AddNumberParameter("PullStrengthC", "PC", "Strength of pull to target Curve", GH_ParamAccess.item, 1);
+            pManager.AddNumberParameter("PullStrengthM", "PM", "Strength of pull to target Mesh", GH_ParamAccess.item, 10);
+            //pManager.AddNumberParameter("PullStrengthC", "PC", "Strength of pull to target Curve", GH_ParamAccess.item, 1);
             pManager[5].Optional = true;
             //6
             pManager.AddIntegerParameter("Row", "r", "Row of Points", GH_ParamAccess.item);
@@ -79,8 +81,6 @@ namespace TryKangaroo
             pManager[9].Optional = true;
             //10
             pManager.AddBooleanParameter("Reset", "R", "Reset", GH_ParamAccess.item,true);
-            pManager.AddGenericParameter("CurvePull", "CP", "CurvePull kangaroo", GH_ParamAccess.list);
-            pManager.AddGenericParameter("MeshSpring", "MP", "Spring kangaroo", GH_ParamAccess.list);
         }
         //public SphereCollide_wqs(List<Point3d> V, double r, double w,
         //    List<Point3d> SV = null, double kP = 1, double gP = 1,
@@ -102,6 +102,7 @@ namespace TryKangaroo
         // List<Line> FL = new List<Line>();
         //int onMeshStrength = 100    ;
         // int restLength = 0;
+        const double factor = 0.9;
         KangarooSolver.PhysicalSystem PS = new KangarooSolver.PhysicalSystem();
         List<IGoal> Goals = new List<IGoal>();
         //List<IGoal> GoalList = new List<IGoal>();
@@ -129,18 +130,18 @@ namespace TryKangaroo
             bool reset = false;
             DA.GetData<Mesh>(0, ref TargetMesh); //获取第0个输入值
             DA.GetDataList<Point3d>(1, Points);
-            DA.GetDataList<Curve >(2, BoundaryCurves);
-            DA.GetData<double>(3, ref PullStrengthM);
+            //DA.GetDataList<Curve >(2, BoundaryCurves);
+            DA.GetDataList<IGoal>(2, MeshSpring);
+            DA.GetDataList<IGoal>(3, CurvePull);
             DA.GetData<double>(4, ref SpringStiffness);
-            DA.GetData<double>(5, ref PullStrengthC);
+            DA.GetData<double>(5, ref PullStrengthM);
+            //DA.GetData<double>(5, ref PullStrengthC);
             DA.GetData<int>(6, ref row);
             column = Points.Count / row;
             DA.GetData<double>(7, ref threshold);
             DA.GetData<double>(8, ref subIteration);
             DA.GetData<double>(9, ref maxIteration);
             DA.GetData<bool>(10, ref reset);
-            DA.GetDataList<IGoal>(11, CurvePull);          
-            DA.GetDataList<IGoal>(12, MeshSpring);
             //内部计算过程start   
             //initialize the solver
 
@@ -160,7 +161,7 @@ namespace TryKangaroo
                         PS.AddParticle(Points[i * column + j], 1);
                     }
                 }
-                                //拉取到目标mesh
+                //拉取到目标mesh
                 Goals.Add(new KangarooSolver.Goals.OnMesh(Points, TargetMesh, PullStrengthM));
                 //裸露点拉到边界线
                 Goals.AddRange(CurvePull);
@@ -175,7 +176,8 @@ namespace TryKangaroo
             }
             else
             {
-                Goals=Goals.GetRange(0, numIGoal_in);
+                //前numIGoal_in个目标不变，而杆长弹簧力跟节点位置有关
+                Goals = Goals.GetRange(0, numIGoal_in);
                 Points =PS.GetPositions().ToList();
                 grids = new List<List<Point3d>>();
                 for (int i = 0; i < row; i++)
@@ -225,7 +227,7 @@ namespace TryKangaroo
                     for (int j = 0; j < column - 1; j++)
                     {
                         double relativeLength = (length_column[j] + length_column[j + 1]) / 2 / length_column_sum;
-                        Goals.Add(new KangarooSolver.Goals.Spring(i * column + j,  i * column + j+1, relativeLength* length_row[i]*0.9, SpringStiffness));
+                        Goals.Add(new KangarooSolver.Goals.Spring(i * column + j,  i * column + j+1, relativeLength* length_row[i]*factor, SpringStiffness));
                     }
                 }
                 //弹簧
@@ -234,7 +236,7 @@ namespace TryKangaroo
                     for (int i = 0; i < row- 1; i++)
                     {
                         double relativeLength = (length_row[i] + length_row[i+ 1]) / 2/length_row_sum;
-                        Goals.Add(new KangarooSolver.Goals.Spring((i + 1)* column + j, i * column + j , relativeLength * length_column[j]*0.9, SpringStiffness));
+                        Goals.Add(new KangarooSolver.Goals.Spring((i + 1)* column + j, i * column + j , relativeLength * length_column[j]* factor, SpringStiffness));
                     }
                 }
                 //Step forward, using these goals, with multi-threading on, and stopping if the threshold is reached
@@ -259,16 +261,13 @@ namespace TryKangaroo
                 //内部计算过程end   
                 //Output the mesh, and how many iterations it took to converge
             }
-            List<Point3d> pout = new List<Point3d>();
-            pout = PS.GetPositions().ToList();
+            List<Point3d> pout = PS.GetPositions().ToList();
             DA.SetDataList(0, pout); //输出第一个输出值
             DA.SetData(1, counter);
             //List<double> ars = SphereCollide_wqs.ars;
             //DA.SetDataList(2, ars); //输出第一个输出值
             //List<Point3d> pp = Goals[1].PPos.ToList();
            // DA.SetDataList(3, pout); //输出第一个输出值
-
-
         }
 
         /// <summary>
