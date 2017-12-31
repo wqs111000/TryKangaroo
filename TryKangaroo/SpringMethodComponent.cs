@@ -81,6 +81,8 @@ namespace TryKangaroo
             pManager[9].Optional = true;
             //10
             pManager.AddBooleanParameter("Reset", "R", "Reset", GH_ParamAccess.item,true);
+            pManager.AddBooleanParameter("bRing", "bR", "bRing", GH_ParamAccess.item,true);
+
         }
         //public SphereCollide_wqs(List<Point3d> V, double r, double w,
         //    List<Point3d> SV = null, double kP = 1, double gP = 1,
@@ -127,7 +129,7 @@ namespace TryKangaroo
             List<IGoal> MeshSpring = new List<IGoal>(); 
             double PullStrengthM = 1, SpringStiffness = 1, PullStrengthC=1;
             int row = 1,column=1;
-            bool reset = false;
+            bool reset = false,bRing=false;
             DA.GetData<Mesh>(0, ref TargetMesh); //获取第0个输入值
             DA.GetDataList<Point3d>(1, Points);
             //DA.GetDataList<Curve >(2, BoundaryCurves);
@@ -142,6 +144,7 @@ namespace TryKangaroo
             DA.GetData<double>(8, ref subIteration);
             DA.GetData<double>(9, ref maxIteration);
             DA.GetData<bool>(10, ref reset);
+            DA.GetData<bool>(11, ref bRing);
             //内部计算过程start   
             //initialize the solver
 
@@ -187,6 +190,10 @@ namespace TryKangaroo
                     {
                         ps.Add(Points[(i * column + j)]);
                         PS.AddParticle(Points[i * column + j], 1);
+                        if (bRing && j == column - 1)
+                        {
+                            ps.Add(Points[(i * column )]);
+                        }
                     }
                     grids.Add(ps);
                 }
@@ -198,7 +205,7 @@ namespace TryKangaroo
                 {
                     double sumLength = 0;
                     List<double> lengths = new List<double>();
-                    for (int j = 0; j < column-1; j++)
+                    for (int j = 0; j < grids[i].Count-1; j++)
                     {
                         double length = grids[i][j].DistanceTo(grids[i][j + 1]);
                         lengths.Add(length);
@@ -209,7 +216,7 @@ namespace TryKangaroo
                 }
                 List<double> length_row2 = length_row.GetRange(1, row-2);
                 double length_row_sum=(length_row.Sum()+ length_row2.Sum())/2;
-                for (int j = 0; j < column; j++)
+                for (int j = 0; j < grids[0].Count; j++)
                 {
                     double sumLength = 0;
                     for (int i = 0; i < row - 1; i++)
@@ -224,10 +231,17 @@ namespace TryKangaroo
                 //弹簧
                 for (int i = 0; i < row; i++)
                 {
-                    for (int j = 0; j < column - 1; j++)
+                    for (int j = 0; j < grids[i].Count - 1; j++)
                     {
                         double relativeLength = (length_column[j] + length_column[j + 1]) / 2 / length_column_sum;
-                        Goals.Add(new KangarooSolver.Goals.Spring(i * column + j,  i * column + j+1, relativeLength* length_row[i]*factor, SpringStiffness));
+                        if (bRing && j==grids[i].Count - 2)
+                        {
+                            Goals.Add(new KangarooSolver.Goals.Spring(i * column + j, i * column , relativeLength * length_row[i] * factor, SpringStiffness));
+                        }
+                        else {
+                            Goals.Add(new KangarooSolver.Goals.Spring(i * column + j, i * column + j + 1, relativeLength * length_row[i] * factor, SpringStiffness));
+
+                        }
                     }
                 }
                 //弹簧
