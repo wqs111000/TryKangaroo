@@ -56,27 +56,31 @@ namespace TryKangaroo
             //1
             pManager.AddGenericParameter("Points", "Pts", "Pts", GH_ParamAccess.list);
             //2
-            pManager.AddNumberParameter("PullStrengthM", "PM", "Strength of pull to target Mesh", GH_ParamAccess.item, 1);
-            pManager[2].Optional = true;
+            pManager.AddGenericParameter("Curves", "Crv", "Curve", GH_ParamAccess.list);
             //3
-            pManager.AddNumberParameter("SpringStiffness", "SS", "Spring Stiffness", GH_ParamAccess.item, 1);
+            pManager.AddNumberParameter("PullStrengthM", "PM", "Strength of pull to target Mesh", GH_ParamAccess.item, 1);
             pManager[3].Optional = true;
             //4
-            pManager.AddIntegerParameter("Row", "r", "Row of Points", GH_ParamAccess.item);
+            pManager.AddNumberParameter("SpringStiffness", "SS", "Spring Stiffness", GH_ParamAccess.item, 1);
+            pManager[4].Optional = true;
             //5
-            pManager.AddNumberParameter("zankong", "r", "zanwu", GH_ParamAccess.item); pManager[5].Optional = true;
+            pManager.AddNumberParameter("PullStrengthC", "PC", "Strength of pull to target Curve", GH_ParamAccess.item, 1);
+            pManager[5].Optional = true;
             //6
-            pManager.AddNumberParameter("threshold", "T", "threshold", GH_ParamAccess.item, 0.0001);
-            pManager[6].Optional = true;
+            pManager.AddIntegerParameter("Row", "r", "Row of Points", GH_ParamAccess.item);
             //7
-            pManager.AddNumberParameter("subIteration", "si", "subIteration", GH_ParamAccess.item, 10);
+            pManager.AddNumberParameter("threshold", "T", "threshold", GH_ParamAccess.item, 0.0001);
             pManager[7].Optional = true;
             //8
-            pManager.AddNumberParameter("maxIteration", "mi", "maxIteration", GH_ParamAccess.item, 100);
+            pManager.AddNumberParameter("subIteration", "si", "subIteration", GH_ParamAccess.item, 10);
             pManager[8].Optional = true;
             //9
+            pManager.AddNumberParameter("maxIteration", "mi", "maxIteration", GH_ParamAccess.item, 100);
+            pManager[9].Optional = true;
+            //10
             pManager.AddBooleanParameter("Reset", "R", "Reset", GH_ParamAccess.item,true);
-
+            pManager.AddGenericParameter("CurvePull", "CP", "CurvePull kangaroo", GH_ParamAccess.list);
+            pManager.AddGenericParameter("MeshSpring", "MP", "Spring kangaroo", GH_ParamAccess.list);
         }
         //public SphereCollide_wqs(List<Point3d> V, double r, double w,
         //    List<Point3d> SV = null, double kP = 1, double gP = 1,
@@ -100,11 +104,13 @@ namespace TryKangaroo
         // int restLength = 0;
         KangarooSolver.PhysicalSystem PS = new KangarooSolver.PhysicalSystem();
         List<IGoal> Goals = new List<IGoal>();
-        List<IGoal> GoalList = new List<IGoal>();
+        //List<IGoal> GoalList = new List<IGoal>();
         bool initialized;
         int counter = 0;
         List<List<Point3d>> grids;
         List<int> indexs = new List<int>();
+        double vSum = 1;
+        int numIGoal_in = 0;
         /// <summary>
         /// This is the method that actually does the work.
         /// </summary>
@@ -115,19 +121,26 @@ namespace TryKangaroo
             double threshold = 1e-3, subIteration = 10, maxIteration = 100;
             Mesh TargetMesh = new Mesh();
             List<Point3d> Points = new List<Point3d>();
-            double  PullStrengthM = 1, SpringStiffness = 1;
+            List<Curve> BoundaryCurves = new List<Curve>();
+            List<IGoal> CurvePull = new List<IGoal>();
+            List<IGoal> MeshSpring = new List<IGoal>(); 
+            double PullStrengthM = 1, SpringStiffness = 1, PullStrengthC=1;
             int row = 1,column=1;
             bool reset = false;
             DA.GetData<Mesh>(0, ref TargetMesh); //获取第0个输入值
             DA.GetDataList<Point3d>(1, Points);
-            DA.GetData<double>(2, ref PullStrengthM);
-            DA.GetData<double>(3, ref SpringStiffness);
-            DA.GetData<int>(4, ref row);
+            DA.GetDataList<Curve >(2, BoundaryCurves);
+            DA.GetData<double>(3, ref PullStrengthM);
+            DA.GetData<double>(4, ref SpringStiffness);
+            DA.GetData<double>(5, ref PullStrengthC);
+            DA.GetData<int>(6, ref row);
             column = Points.Count / row;
-            DA.GetData<double>(6, ref threshold);
-            DA.GetData<double>(7, ref subIteration);
-            DA.GetData<double>(8, ref maxIteration);
-            DA.GetData<bool>(9, ref reset);
+            DA.GetData<double>(7, ref threshold);
+            DA.GetData<double>(8, ref subIteration);
+            DA.GetData<double>(9, ref maxIteration);
+            DA.GetData<bool>(10, ref reset);
+            DA.GetDataList<IGoal>(11, CurvePull);          
+            DA.GetDataList<IGoal>(12, MeshSpring);
             //内部计算过程start   
             //initialize the solver
 
@@ -137,26 +150,44 @@ namespace TryKangaroo
                 PS = new KangarooSolver.PhysicalSystem();
                 Goals = new List<IGoal>();
                 initialized = true;
+                //grids = new List<List<Point3d>>();
+                //indexs = new List<int>();
+                for (int i = 0; i < row; i++)
+                {
+                    //List<Point3d> ps = new List<Point3d>();
+                    for (int j = 0; j < column; j++)
+                    {
+                        PS.AddParticle(Points[i * column + j], 1);
+                    }
+                }
+                                //拉取到目标mesh
+                Goals.Add(new KangarooSolver.Goals.OnMesh(Points, TargetMesh, PullStrengthM));
+                //裸露点拉到边界线
+                Goals.AddRange(CurvePull);
+                Goals.AddRange(MeshSpring);
+                //List<IGoal> GoalList = new List<IGoal>();
+                foreach (IGoal G in Goals) //Assign indexes to the particles in each Goal:
+                {
+                    PS.AssignPIndex(G, 0.0001); // the second argument is the tolerance distance below which points combine into a single particle
+                }
+                numIGoal_in = 1 + CurvePull.Count + MeshSpring.Count;
+
+            }
+            else
+            {
+                Goals=Goals.GetRange(0, numIGoal_in);
+                Points =PS.GetPositions().ToList();
                 grids = new List<List<Point3d>>();
-                indexs = new List<int>();
                 for (int i = 0; i < row; i++)
                 {
                     List<Point3d> ps = new List<Point3d>();
                     for (int j = 0; j < column; j++)
                     {
-                        ps.Add(Points[(i * row + j)]);
-                        PS.AddParticle(Points[i * row + j], 1);
-                        indexs.Add(i * row + j);
+                        ps.Add(Points[(i * column + j)]);
+                        PS.AddParticle(Points[i * column + j], 1);
                     }
                     grids.Add(ps);
                 }
-            }
-            else
-            {
-                //var IndexList = Enumerable.Range(0, PS.ParticleCount()).ToList();
-                //Goals.Add(new KangarooSolver.Goals.OnCurve(NakedPts, BoundaryCurves[0], PullStrengthC));
-                //Goals.Add(new KangarooSolver.Goals.OnMesh(Pts, TargetMesh, 1));
-                Goals.Add(new KangarooSolver.Goals.OnMesh(indexs, TargetMesh, PullStrengthM));
                 List<double> length_row = new List<double>();
                 List<double> length_column = new List<double>();
                 List<List<double>> gridLengths = new List<List<double>>();
@@ -194,7 +225,7 @@ namespace TryKangaroo
                     for (int j = 0; j < column - 1; j++)
                     {
                         double relativeLength = (length_column[j] + length_column[j + 1]) / 2 / length_column_sum;
-                        Goals.Add(new KangarooSolver.Goals.Spring(i * row + j, i * row + j+1, relativeLength* length_row[i], SpringStiffness));
+                        Goals.Add(new KangarooSolver.Goals.Spring(i * column + j,  i * column + j+1, relativeLength* length_row[i]*0.9, SpringStiffness));
                     }
                 }
                 //弹簧
@@ -202,19 +233,28 @@ namespace TryKangaroo
                 {
                     for (int i = 0; i < row- 1; i++)
                     {
-                        double relativeLength = (length_row[j] + length_row[j + 1]) / 2/length_row_sum;
-                        Goals.Add(new KangarooSolver.Goals.Spring((i + 1)* row + j, i * row + j , relativeLength * length_column[j], SpringStiffness));
+                        double relativeLength = (length_row[i] + length_row[i+ 1]) / 2/length_row_sum;
+                        Goals.Add(new KangarooSolver.Goals.Spring((i + 1)* column + j, i * column + j , relativeLength * length_column[j]*0.9, SpringStiffness));
                     }
                 }
-            //Step forward, using these goals, with multi-threading on, and stopping if the threshold is reached
-            if (counter == 0 || (PS.GetvSum() > threshold && counter < 100))
+                //Step forward, using these goals, with multi-threading on, and stopping if the threshold is reached
+                PS = new KangarooSolver.PhysicalSystem();
+                for (int i = 0; i < row; i++)
+                {
+                    //List<Point3d> ps = new List<Point3d>();
+                    for (int j = 0; j < column; j++)
+                    {
+                        PS.AddParticle(Points[i * column + j], 1);
+                    }
+                }
+                if (counter == 0 || (vSum > threshold && counter < 100))
                 {
                     for (int i = 0; i < subIteration; i += 1)
                     {
                         PS.Step(Goals, true, threshold);
                         counter++;
                     }
-                    double sum = PS.GetvSum();
+                    vSum = PS.GetvSum();
                 }
                 //内部计算过程end   
                 //Output the mesh, and how many iterations it took to converge

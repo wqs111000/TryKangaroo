@@ -227,7 +227,7 @@ namespace TryKangaroo
                 {
                     for (int i = 0; i < subIteration; i += 1)
                     {
-                        PS.Step(Goals, true, threshold);
+                        PS.Step(GoalList, true, threshold);
                         counter++;
                     }
                     double sum = PS.GetvSum();

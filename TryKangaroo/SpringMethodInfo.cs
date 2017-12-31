@@ -4,13 +4,13 @@ using Grasshopper.Kernel;
 
 namespace TryKangaroo
 {
-    public class BubbleMethodInfo : GH_AssemblyInfo
+    public class SpringMethodInfo : GH_AssemblyInfo
     {
         public override string Name
         {
             get
             {
-                return "BubbleMethod";
+                return "SpringMethod";
             }
         }
         public override Bitmap Icon
