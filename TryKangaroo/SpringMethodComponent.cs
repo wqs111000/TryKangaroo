@@ -114,6 +114,7 @@ namespace TryKangaroo
         List<int> indexs = new List<int>();
         double vSum = 1;
         int numIGoal_in = 0;
+        double length_row_start, length_row_end, length_column_start, length_column_end;
         /// <summary>
         /// This is the method that actually does the work.
         /// </summary>
@@ -207,11 +208,27 @@ namespace TryKangaroo
                     List<double> lengths = new List<double>();
                     for (int j = 0; j < grids[i].Count-1; j++)
                     {
-                        double length = grids[i][j].DistanceTo(grids[i][j + 1]);
+                        double length = grids[i][j].DistanceTo(grids[i][j + 1]); ;
                         lengths.Add(length);
                         sumLength += length;
                     }
+                    //边界线上的多线段长度之和直接固定为首次的结果就好了，避免重叠后导致长度边长
                     gridLengths.Add(lengths);
+                    if (counter == 0)
+                    {
+                        if (i == 0)
+                            length_row_start = sumLength;
+                        if (i == row - 1)
+                            length_row_end = sumLength;
+                    }
+                    else
+                    {
+                        if (i == 0)
+                            sumLength = length_row_start;
+                        if (i == row - 1)
+                            sumLength = length_row_end;
+
+                    }
                     length_row.Add(sumLength);
                 }
                 List<double> length_row2 = length_row.GetRange(1, row-2);
@@ -223,6 +240,21 @@ namespace TryKangaroo
                     {
                         double length = grids[i][j].DistanceTo(grids[i+1][j]);
                         sumLength += length;
+                    }
+                    if (counter == 0)
+                    {
+                        if (j == 0)
+                            length_column_start = sumLength;
+                        if (j == column - 1)
+                            length_column_end = sumLength;
+                    }
+                    else
+                    {
+                        if (j == 0)
+                            sumLength = length_column_start;
+                        if (j == row - 1)
+                            sumLength = length_column_end;
+
                     }
                     length_column.Add(sumLength);
                 }
@@ -263,7 +295,7 @@ namespace TryKangaroo
                         PS.AddParticle(Points[i * column + j], 1);
                     }
                 }
-                if (counter == 0 || (vSum > threshold && counter < 100))
+                if (counter == 0 || (vSum > threshold && counter < maxIteration))
                 {
                     for (int i = 0; i < subIteration; i += 1)
                     {
