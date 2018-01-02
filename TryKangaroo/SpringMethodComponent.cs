@@ -104,7 +104,7 @@ namespace TryKangaroo
         // List<Line> FL = new List<Line>();
         //int onMeshStrength = 100    ;
         // int restLength = 0;
-        const double factor = 0.9;
+        const double factor = 0.8;
         KangarooSolver.PhysicalSystem PS = new KangarooSolver.PhysicalSystem();
         List<IGoal> Goals = new List<IGoal>();
         //List<IGoal> GoalList = new List<IGoal>();
@@ -268,10 +268,12 @@ namespace TryKangaroo
                         double relativeLength = (length_column[j] + length_column[j + 1]) / 2 / length_column_sum;
                         if (bRing && j==grids[i].Count - 2)
                         {
-                            Goals.Add(new KangarooSolver.Goals.Spring(i * column + j, i * column , relativeLength * length_row[i] * factor, SpringStiffness));
+                            Goals.Add(new KangarooSolver.Goals.Spring(
+                                i * column + j, i * column , relativeLength * length_row[i] * factor, SpringStiffness* length_row.Sum() /row/ length_row[i]));
                         }
                         else {
-                            Goals.Add(new KangarooSolver.Goals.Spring(i * column + j, i * column + j + 1, relativeLength * length_row[i] * factor, SpringStiffness));
+                            Goals.Add(new KangarooSolver.Goals.Spring(
+                                i * column + j, i * column + j + 1, relativeLength * length_row[i] * factor, SpringStiffness * length_row.Sum() /row/ length_row[i]));
 
                         }
                     }
@@ -282,7 +284,8 @@ namespace TryKangaroo
                     for (int i = 0; i < row- 1; i++)
                     {
                         double relativeLength = (length_row[i] + length_row[i+ 1]) / 2/length_row_sum;
-                        Goals.Add(new KangarooSolver.Goals.Spring((i + 1)* column + j, i * column + j , relativeLength * length_column[j]* factor, SpringStiffness));
+                        Goals.Add(new KangarooSolver.Goals.Spring(
+                            (i + 1)* column + j, i * column + j , relativeLength * length_column[j]* factor, SpringStiffness * length_column.Sum() /column/ length_column[j]));
                     }
                 }
                 //Step forward, using these goals, with multi-threading on, and stopping if the threshold is reached
