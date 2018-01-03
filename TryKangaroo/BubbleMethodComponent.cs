@@ -64,7 +64,8 @@ namespace TryKangaroo
             //4
             pManager.AddNumberParameter("radius", "r", "basic radius", GH_ParamAccess.item);
             //5
-            pManager.AddNumberParameter("zankong", "r", "zanwu", GH_ParamAccess.item); pManager[5].Optional = true;
+            pManager.AddNumberParameter("zankong", "r", "zanwu", GH_ParamAccess.item);
+            pManager[5].Optional = true;
             //6
             pManager.AddNumberParameter("threshold", "T", "threshold", GH_ParamAccess.item, 0.0001);
             pManager[6].Optional = true;
@@ -89,7 +90,7 @@ namespace TryKangaroo
             pManager.AddGenericParameter("SpecialCurves", "SC", "Special Curves", GH_ParamAccess.list);
             pManager[13].Optional = true;
             //14
-            pManager.AddNumberParameter("k_SpecialCurve", "ksc", "ksc", GH_ParamAccess.item, 1);
+              pManager.AddNumberParameter("k_SpecialCurve", "ksc", "ksc", GH_ParamAccess.item, 1);
             pManager[14].Optional = true;
             //15
             pManager.AddNumberParameter("g_SpecialCurve", "gsc", "gsc", GH_ParamAccess.item, 1);
@@ -119,11 +120,7 @@ namespace TryKangaroo
             pManager.AddNumberParameter("g_ReferSurface", "grs", "k_ReferSurface", GH_ParamAccess.item, 1);
             pManager[23].Optional = true; 
         }
-        //public SphereCollide_wqs(List<Point3d> V, double r, double w,
-        //    List<Point3d> SV = null, double kP = 1, double gP = 1,
-        //     List<Curve> SC = null, double kL = 1, double gL = 1,
-        //      Curve rCurve = null, List<Point3d> CRP = null, double kCC = 1, double gCC = 1,
-        //      Surface rSurface = null, List<Point3d> SRP = null, double kCS = 1, double gCS = 1)
+
         /// <summary>
         /// Registers all the output parameters for this component.
         /// </summary>
@@ -132,7 +129,7 @@ namespace TryKangaroo
             //pManager.AddTextParameter("Reverse", "R", "Reversed string", GH_ParamAccess.item);
             pManager.AddPointParameter("Points", "P", "Point", GH_ParamAccess.list);
             pManager.AddIntegerParameter("iteration", "I", "迭代次数", GH_ParamAccess.item);
-            pManager.AddNumberParameter("adjustedRadius", "AR", "各气泡半径", GH_ParamAccess.list);
+            pManager.AddNumberParameter("bubbleRadius", "BR", "各气泡半径", GH_ParamAccess.list);
             pManager.AddPointParameter("bubbleCenters", "BC", "各气泡中心", GH_ParamAccess.list);
 
         }
@@ -157,9 +154,9 @@ namespace TryKangaroo
         {
             Mesh TargetMesh = new Mesh();
             List<Point3d> Points = new List<Point3d>();
-            double  PullStrengthM = 1, CollideStrength=1;
+            double  PullStrengthM = 100, CollideStrength=1;
             double radius = 1;
-            bool reset = false;
+            bool reset = true;
             double k_SpecialPoint=1, g_SpecialPoint=1, k_SpecialCurve=1, g_SpecialCurve=1,
                 k_ReferCurve=1, g_ReferCurve=1, k_ReferSurface=1, g_ReferSurface=1;
             List<Point3d> SpecialPoints = new List<Point3d>();
@@ -173,6 +170,7 @@ namespace TryKangaroo
             DA.GetData<double>(2, ref PullStrengthM);
             DA.GetData<double>(3, ref CollideStrength);
             DA.GetData<double>(4, ref radius);
+            //暂无
             DA.GetData<double>(6, ref threshold);
             DA.GetData<double>(7, ref subIteration);
             DA.GetData<double>(8, ref maxIteration);
@@ -198,6 +196,7 @@ namespace TryKangaroo
             if (reset || initialized == false)
             {
                 #region reset
+
                 counter = 0;
                 PS = new KangarooSolver.PhysicalSystem();
                 Goals = new List<IGoal>();
@@ -213,10 +212,11 @@ namespace TryKangaroo
                     ReferSurfaces, ReferSurfacePoints, k_ReferSurface, g_ReferSurface
                     ));
                  //public SphereCollide_wqs(List<Point3d> V, List<Point3d> SV, double radius, double k, double kSV0, double gSV0)
+                //GoalList = new List<IGoal>();
                 foreach (IGoal G in Goals) //Assign indexes to the particles in each Goal:
                 {
                     PS.AssignPIndex(G, 0.0001); // the second argument is the tolerance distance below which points combine into a single particle
-                    GoalList.Add(G);
+                    //GoalList.Add(G);
                 }
                 #endregion
             }
@@ -227,7 +227,7 @@ namespace TryKangaroo
                 {
                     for (int i = 0; i < subIteration; i += 1)
                     {
-                        PS.Step(GoalList, true, threshold);
+                        PS.Step(Goals, true, threshold);
                         counter++;
                     }
                     double sum = PS.GetvSum();
@@ -239,8 +239,8 @@ namespace TryKangaroo
             pout = PS.GetPositions().ToList();
             DA.SetDataList(0, pout); //输出第一个输出值
             DA.SetData(1, counter);
-            List<double> ars = SphereCollide_wqs.ars;
-            DA.SetDataList(2, ars); //输出第一个输出值
+            List<double> brs = SphereCollide_wqs.brs;
+            DA.SetDataList(2, brs); //输出气泡半径
             List<Point3d> pp = Goals[1].PPos.ToList();
             DA.SetDataList(3, pp); //输出第一个输出值
 

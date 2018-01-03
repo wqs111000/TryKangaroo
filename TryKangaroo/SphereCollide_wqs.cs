@@ -32,7 +32,7 @@ namespace KangarooSolver.Goals
         public double kSR = 1;
         public List<double> kSRs;
         public double gSR = 1;
-        static public List<double> ars;
+        static public List<double> brs;
         //控制气泡大小和特定点的距离相关
         public SphereCollide_wqs(List<Point3d> V, double r, double w,
             List<Point3d> SV = null, double kP = 1, double gP = 1,
@@ -49,9 +49,9 @@ namespace KangarooSolver.Goals
                 Weighting[i] = w;
             }
             r0 = r;
-            ars = new List<double>(V.Count);
+            brs = new List<double>(V.Count);
             for (int i = 0; i < V.Count; i += 1)
-                ars.Add(r0);
+                brs.Add(r0);
             //Diam = r + r;
             // SqDiam = Diam * Diam;
             Strength = w;
@@ -201,7 +201,7 @@ namespace KangarooSolver.Goals
         {
             int L = PIndex.Length;
             double[] Xcoord = new double[L];
-            // List<double> ars=new List<double>(); 
+            // List<double> brs=new List<double>(); 
             for (int i = 0; i < (PIndex.Length); i++)
             {
                 if (i == 47)
@@ -210,7 +210,7 @@ namespace KangarooSolver.Goals
                 }
                 double hmin = RadiusFactor(p[PIndex[i]].Position);
                 double ar = r0 * hmin;
-                ars[PIndex[i]] = ar;
+                brs[PIndex[i]] = ar;
             }
             for (int i = 0; i < L; i++)
             {
@@ -228,7 +228,7 @@ namespace KangarooSolver.Goals
             {
                 for (int k = i + 1; k < PIndex.Length; k++)
                 {
-                    double Diam = ars[PIndex[i]] + ars[PIndex[k]];
+                    double Diam = brs[PIndex[i]] + brs[PIndex[k]];
                     Vector3d Separation = p[PIndex[k]].Position - p[PIndex[i]].Position;
                     if (Separation.X < Diam)
                     {
