@@ -1,15 +1,7 @@
-H:\3rd year\mesh generation based on rhino and grasshopper\C sharp\TryKangaroo\TryKangaroo\bin\TryKangaroo.dll
-H:\3rd year\mesh generation based on rhino and grasshopper\C sharp\TryKangaroo\TryKangaroo\bin\TryKangaroo.pdb
-H:\3rd year\mesh generation based on rhino and grasshopper\C sharp\TryKangaroo\TryKangaroo\bin\KangarooSolver.dll
-H:\3rd year\mesh generation based on rhino and grasshopper\C sharp\TryKangaroo\TryKangaroo\obj\Debug32\TryKangaroo.csprojResolveAssemblyReference.cache
-H:\3rd year\mesh generation based on rhino and grasshopper\C sharp\TryKangaroo\TryKangaroo\obj\Debug32\TryKangaroo.Properties.Resources.resources
-H:\3rd year\mesh generation based on rhino and grasshopper\C sharp\TryKangaroo\TryKangaroo\obj\Debug32\TryKangaroo.csproj.GenerateResource.Cache
-H:\3rd year\mesh generation based on rhino and grasshopper\C sharp\TryKangaroo\TryKangaroo\obj\Debug32\TryKangaroo.dll
-H:\3rd year\mesh generation based on rhino and grasshopper\C sharp\TryKangaroo\TryKangaroo\obj\Debug32\TryKangaroo.pdb
-C:\Users\MAC-WIN10\Desktop\C#\TryKangaroo\TryKangaroo\bin\TryKangaroo.dll
-C:\Users\MAC-WIN10\Desktop\C#\TryKangaroo\TryKangaroo\bin\TryKangaroo.pdb
-C:\Users\MAC-WIN10\Desktop\C#\TryKangaroo\TryKangaroo\obj\Debug32\TryKangaroo.csprojResolveAssemblyReference.cache
 C:\Users\MAC-WIN10\Desktop\C#\TryKangaroo\TryKangaroo\obj\Debug32\TryKangaroo.Properties.Resources.resources
 C:\Users\MAC-WIN10\Desktop\C#\TryKangaroo\TryKangaroo\obj\Debug32\TryKangaroo.csproj.GenerateResource.Cache
+C:\Users\MAC-WIN10\Desktop\C#\TryKangaroo\TryKangaroo\bin\TryKangaroo.dll
+C:\Users\MAC-WIN10\Desktop\C#\TryKangaroo\TryKangaroo\bin\TryKangaroo.pdb
 C:\Users\MAC-WIN10\Desktop\C#\TryKangaroo\TryKangaroo\obj\Debug32\TryKangaroo.dll
 C:\Users\MAC-WIN10\Desktop\C#\TryKangaroo\TryKangaroo\obj\Debug32\TryKangaroo.pdb
+C:\Users\MAC-WIN10\Desktop\C#\TryKangaroo\TryKangaroo\obj\Debug32\TryKangaroo.csprojResolveAssemblyReference.cache

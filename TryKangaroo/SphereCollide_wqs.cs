@@ -11,7 +11,7 @@ namespace KangarooSolver.Goals
 {
     public class SphereCollide_wqs : GoalObject
     {
-        const double maximumDistance = 0.001, clb_basic=0.01;//点是否在曲线或者曲面上，曲率下限计算参考值
+        const double maximumDistance = 0.001;//点是否在曲线或者曲面上
         public double Strength;
         //public double SqDiam;
         //public double Diam;
@@ -62,45 +62,46 @@ namespace KangarooSolver.Goals
             kSC = kL;
             gSC = gL;
 
-            double clb = clb_basic / r0;//考虑的曲率下线
+            double clb_c = 1 / r0 ;//考虑的曲率下线
+            double clb_s = 1 / r0;//考虑的曲率下线
             if (CRP != null && rCurves != null && rCurves.Count != 0)
             {
-                curveReferPoints = CRP;
                 referCurves = rCurves;
                 kCR = kCC;
                 gCR = gCC;
                 kCRs = new List<double>();
-                foreach (var rp in curveReferPoints)
+                curveReferPoints = new List<Point3d>();
+                 foreach (var rp in CRP)
                 {
                     double t;
-                    double mink = 1;
                     foreach (var referCurve in referCurves)
                     {
                         if (referCurve.ClosestPoint(rp, out t, maximumDistance))
                         {
                             double cCurvature = referCurve.CurvatureAt(t).Length;
-                            double k = 1;
-                            if (cCurvature > clb)
+                            if (cCurvature > clb_c)
                             {
-                                k = kCR + (1 - kCR) * Math.Abs(clb / cCurvature);
-                            }
-                            if (mink > k)
-                            {
-                                mink = k;
+                               double k = kCR + (1 - kCR) * Math.Abs(clb_c / cCurvature);
+                                if (k < 1)
+                                {
+                                    kCRs.Add(k);
+                                    curveReferPoints.Add(rp);
+                                    break;
+                                }
                             }
                         }
                     }
-                        kCRs.Add(mink);
                 }
             }
+            surfaceReferPoints = new List<Point3d>();
             if (SRP != null && rSurfaces != null && rSurfaces.Count != 0)
             {
-                surfaceReferPoints = SRP;
+               // surfaceReferPoints = SRP;
                 referSurfaces = rSurfaces;
                 kSR = kCS;
                 gSR = gCS;
                 kSRs = new List<double>();
-                foreach (var rp in surfaceReferPoints)
+                foreach (var rp in SRP)
                 {
                     double u, v;
                     double mink = 1;
@@ -114,19 +115,19 @@ namespace KangarooSolver.Goals
                             if(p0.DistanceTo(rp) < maximumDistance)
                             {
                                 double sCurvature = Math.Abs(referSurface.CurvatureAt(u, v).Gaussian);
-                                double k = 1;
-                                if (sCurvature > clb)
+                                if (sCurvature > clb_s)
                                 {
-                                    k = kSR + (1 - kSR) * Math.Abs(clb / sCurvature);
-                                }
-                                if (mink > k)
-                                {
-                                    mink = k;
+                                    double k = kSR + (1 - kSR) * Math.Abs(clb_s / sCurvature);
+                                    if (k < 1)
+                                    {
+                                        kSRs.Add(k);
+                                        surfaceReferPoints.Add(rp);
+                                        break;
+                                    }
                                 }
                             }
                         }
                     }
-                        kSRs.Add(mink);
                 }
             }
 
