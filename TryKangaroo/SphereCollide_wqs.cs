@@ -204,10 +204,6 @@ namespace KangarooSolver.Goals
             // List<double> brs=new List<double>(); 
             for (int i = 0; i < (PIndex.Length); i++)
             {
-                if (i == 47)
-                {
-                    int aaa = 333;
-                }
                 double hmin = RadiusFactor(p[PIndex[i]].Position);
                 double ar = r0 * hmin;
                 brs[PIndex[i]] = ar;
@@ -235,7 +231,7 @@ namespace KangarooSolver.Goals
                         if (Separation.SquareLength < Diam * Diam)
                         {
                             double LengthNow = Separation.Length;
-                            double stretchfactor = 1.0 - Diam / LengthNow;
+                            double stretchfactor = (LengthNow - Diam)/Diam / LengthNow;
                             Vector3d SpringMove = 0.5 * Separation * stretchfactor;
                             Move[i] += SpringMove;
                             Move[k] -= SpringMove;

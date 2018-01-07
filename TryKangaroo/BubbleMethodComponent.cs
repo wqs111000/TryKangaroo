@@ -64,7 +64,7 @@ namespace TryKangaroo
             //4
             pManager.AddNumberParameter("radius", "r", "basic radius", GH_ParamAccess.item);
             //5
-            pManager.AddNumberParameter("zankong", "r", "zanwu", GH_ParamAccess.item);
+            pManager.AddGenericParameter("OtherGoals", "OG", "OtherGoals", GH_ParamAccess.list);
             pManager[5].Optional = true;
             //6
             pManager.AddNumberParameter("threshold", "T", "threshold", GH_ParamAccess.item, 0.0001);
@@ -130,7 +130,7 @@ namespace TryKangaroo
             pManager.AddPointParameter("Points", "P", "Point", GH_ParamAccess.list);
             pManager.AddIntegerParameter("iteration", "I", "迭代次数", GH_ParamAccess.item);
             pManager.AddNumberParameter("bubbleRadius", "BR", "各气泡半径", GH_ParamAccess.list);
-            pManager.AddPointParameter("bubbleCenters", "BC", "各气泡中心", GH_ParamAccess.list);
+            //pManager.AddPointParameter("bubbleCenters", "BC", "各气泡中心", GH_ParamAccess.list);
 
         }
 
@@ -141,7 +141,7 @@ namespace TryKangaroo
         // int restLength = 0;
         KangarooSolver.PhysicalSystem PS = new KangarooSolver.PhysicalSystem();
         List<IGoal> Goals = new List<IGoal>();
-        List<IGoal> GoalList = new List<IGoal>();
+        List<IGoal> OtherGoals = new List<IGoal>();
         bool initialized;
         int counter = 0;
         double threshold = 1e-3, subIteration=10, maxIteration=100;
@@ -170,7 +170,7 @@ namespace TryKangaroo
             DA.GetData<double>(2, ref PullStrengthM);
             DA.GetData<double>(3, ref CollideStrength);
             DA.GetData<double>(4, ref radius);
-            //暂无
+            DA.GetDataList<IGoal>(5, OtherGoals);
             DA.GetData<double>(6, ref threshold);
             DA.GetData<double>(7, ref subIteration);
             DA.GetData<double>(8, ref maxIteration);
@@ -204,6 +204,7 @@ namespace TryKangaroo
                 //var IndexList = Enumerable.Range(0, PS.ParticleCount()).ToList();
                 //Goals.Add(new KangarooSolver.Goals.OnCurve(NakedPts, BoundaryCurves[0], PullStrengthC));
                 //Goals.Add(new KangarooSolver.Goals.OnMesh(Pts, TargetMesh, 1));
+                Goals.AddRange(OtherGoals);
                 Goals.Add(new KangarooSolver.Goals.OnMesh(Points, TargetMesh, PullStrengthM));
                 Goals.Add(new KangarooSolver.Goals.SphereCollide_wqs(Points, radius, CollideStrength,
                     SpecialPoints, k_SpecialPoint, g_SpecialPoint,
@@ -223,7 +224,7 @@ namespace TryKangaroo
             else
             {
                 //Step forward, using these goals, with multi-threading on, and stopping if the threshold is reached
-                if (counter == 0 || (PS.GetvSum() > threshold && counter < 100))
+                if (counter == 0 || (PS.GetvSum() > threshold && counter < maxIteration))
                 {
                     for (int i = 0; i < subIteration; i += 1)
                     {
