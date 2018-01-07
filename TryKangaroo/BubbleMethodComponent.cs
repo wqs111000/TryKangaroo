@@ -130,7 +130,7 @@ namespace TryKangaroo
             pManager.AddPointParameter("Points", "P", "Point", GH_ParamAccess.list);
             pManager.AddIntegerParameter("iteration", "I", "迭代次数", GH_ParamAccess.item);
             pManager.AddNumberParameter("bubbleRadius", "BR", "各气泡半径", GH_ParamAccess.list);
-            pManager.AddPointParameter("bubbleCenters", "BC", "各气泡中心", GH_ParamAccess.list);
+         //   pManager.AddPointParameter("bubbleCenters", "BC", "各气泡中心", GH_ParamAccess.list);
 
         }
 
