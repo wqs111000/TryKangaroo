@@ -1,7 +1,7 @@
-C:\Users\MAC-WIN10\Desktop\C#\TryKangaroo\TryKangaroo\obj\Debug32\TryKangaroo.Properties.Resources.resources
-C:\Users\MAC-WIN10\Desktop\C#\TryKangaroo\TryKangaroo\obj\Debug32\TryKangaroo.csproj.GenerateResource.Cache
 C:\Users\MAC-WIN10\Desktop\C#\TryKangaroo\TryKangaroo\bin\TryKangaroo.dll
 C:\Users\MAC-WIN10\Desktop\C#\TryKangaroo\TryKangaroo\bin\TryKangaroo.pdb
+C:\Users\MAC-WIN10\Desktop\C#\TryKangaroo\TryKangaroo\obj\Debug32\TryKangaroo.csprojResolveAssemblyReference.cache
+C:\Users\MAC-WIN10\Desktop\C#\TryKangaroo\TryKangaroo\obj\Debug32\TryKangaroo.Properties.Resources.resources
+C:\Users\MAC-WIN10\Desktop\C#\TryKangaroo\TryKangaroo\obj\Debug32\TryKangaroo.csproj.GenerateResource.Cache
 C:\Users\MAC-WIN10\Desktop\C#\TryKangaroo\TryKangaroo\obj\Debug32\TryKangaroo.dll
 C:\Users\MAC-WIN10\Desktop\C#\TryKangaroo\TryKangaroo\obj\Debug32\TryKangaroo.pdb
-C:\Users\MAC-WIN10\Desktop\C#\TryKangaroo\TryKangaroo\obj\Debug32\TryKangaroo.csprojResolveAssemblyReference.cache

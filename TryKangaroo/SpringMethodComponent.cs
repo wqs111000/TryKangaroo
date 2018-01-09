@@ -328,7 +328,7 @@ namespace TryKangaroo
             get
             {
                 // You can add image files to your project resources and access them like this:
-                return Properties.Resources.tryKangaroo;
+                return Properties.Resources.spring;
                 //return null;
             }
         }

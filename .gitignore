@@ -58,3 +58,6 @@ TryKangaroo/obj/Debug32/TryKangaroo.dll
 *.pdb
 *.pdb
 *.Cache
+*.suo
+*.cache
+*.Cache

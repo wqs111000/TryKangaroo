@@ -63,6 +63,26 @@ namespace TryKangaroo.Properties {
         /// <summary>
         ///   查找 System.Drawing.Bitmap 类型的本地化资源。
         /// </summary>
+        internal static System.Drawing.Bitmap bubble {
+            get {
+                object obj = ResourceManager.GetObject("bubble", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   查找 System.Drawing.Bitmap 类型的本地化资源。
+        /// </summary>
+        internal static System.Drawing.Bitmap spring {
+            get {
+                object obj = ResourceManager.GetObject("spring", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   查找 System.Drawing.Bitmap 类型的本地化资源。
+        /// </summary>
         internal static System.Drawing.Bitmap tryKangaroo {
             get {
                 object obj = ResourceManager.GetObject("tryKangaroo", resourceCulture);
